@@ -47,6 +47,7 @@ These are installed in the Docker container during the build process.
 ```json
 {
   "event_url": "<event_url>",
+  "quantity": <quantity>,
   "max_price": <maximum_price>
 }
 ```

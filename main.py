@@ -10,6 +10,7 @@ app = FastAPI()
 
 class EventRequest(BaseModel):
     event_url: str
+    quantity: int
     max_price: int
 
 class CookieRequest(BaseModel):
@@ -44,7 +45,7 @@ req_cookies = [
 AUTH_HEADER_NAME = "x-api-key"
 VALID_API_KEY = os.getenv("API_KEY", "your-secret-api-key")
 
-async def get_cookies_and_quickpicks(event_url, max_price=None):
+async def get_cookies_and_quickpicks(event_url, quantity=None, max_price=None):
     global quickpicks_url
     quickpicks_url = None
 
@@ -63,7 +64,7 @@ async def get_cookies_and_quickpicks(event_url, max_price=None):
     await browser.close()
 
     if max_price:
-        quickpicks_url = modify_quickpicks_url(quickpicks_url, max_price)
+        quickpicks_url = modify_quickpicks_url(quickpicks_url, quantity, max_price)
 
     final_cookies = ""
     for cookie in cookies:
@@ -77,7 +78,13 @@ async def intercept_response(request):
     if "offeradapter.ticketmaster.com" in request.url and "quickpicks" in request.url and quickpicks_url is None:
         quickpicks_url = request.url
 
-def modify_quickpicks_url(url, max_price):
+def modify_quickpicks_url(url, quantity, max_price):
+    # Modify 'qty' parameter
+    start_q = url.find("qty=")
+    end_q = url.find("&", start_q) if url.find("&", start_q) != -1 else len(url)
+    if start_q != -1:
+        url = url[:start_q] + f"qty={quantity}" + url[end_q:]
+
     # Modify 'q' parameter
     start_q = url.find("q=")
     end_q = url.find("&", start_q) if url.find("&", start_q) != -1 else len(url)
@@ -99,10 +106,13 @@ async def verify_api_key(x_api_key: str = Header(...)):
 @app.post("/initial-setup", dependencies=[Depends(verify_api_key)])
 async def initial_setup(event_request: EventRequest):
     try:
-        if event_request.max_price is None:
-            raise HTTPException(status_code=400, detail="max_price must be provided")
+        if event_request.quantity is None:
+            raise HTTPException(status_code=400, detail="quantity must be provided")
 
-        cookies, quickpicks_url = await get_cookies_and_quickpicks(event_request.event_url, event_request.max_price)
+        if event_request.max_price is None:
+                raise HTTPException(status_code=400, detail="max_price must be provided")
+
+        cookies, quickpicks_url = await get_cookies_and_quickpicks(event_request.event_url, event_request.quantity, event_request.max_price)
         return {"cookie": cookies, "quickpicks_url": quickpicks_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
