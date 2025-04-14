@@ -1,5 +1,3 @@
-Here's a basic `README.md` file for your project:
-
 # Ticketmaster API Dockerized Service
 
 This service is a Dockerized FastAPI application that provides three API endpoints to interact with Ticketmaster. It leverages Puppeteer to extract cookies and intercept specific URLs for ticket price queries. The application is designed to be flexible for use in serverless or containerized environments like AWS Lambda or Kubernetes.
@@ -134,11 +132,3 @@ MIT License
 ## Contact
 
 For further inquiries, feel free to reach out.
-```
-
-### Instructions:
-
-1. Replace `"your-secret-api-key"` with your actual API key.
-2. Modify the contact section to suit your preferred contact information (email, GitHub link, etc.).
-
-This `README.md` provides a clear overview of the application and the API endpoints for users.
